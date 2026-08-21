@@ -1,0 +1,1510 @@
+commit 557ece6855891681514448310a4bf8df02ec6803
+Author: Mark Paluch <mpaluch@paluch.biz>
+Date:   Mon Oct 14 11:32:26 2013 +0200
+
+    #2 Added support for log4j v2.0
+
+diff --git a/pom.xml b/pom.xml
+index 5630335..c8d1bb0 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -1,46 +1,47 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+-    <modelVersion>4.0.0</modelVersion>
++<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
++		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
++	<modelVersion>4.0.0</modelVersion>
+ 
+-    <parent>
+-        <groupId>org.sonatype.oss</groupId>
+-        <artifactId>oss-parent</artifactId>
+-        <version>7</version>
+-    </parent>
++	<parent>
++		<groupId>org.sonatype.oss</groupId>
++		<artifactId>oss-parent</artifactId>
++		<version>7</version>
++	</parent>
+ 
+-    <groupId>biz.paluch.logging</groupId>
+-    <version>1.1.1-SNAPSHOT</version>
+-    <artifactId>logstash-gelf</artifactId>
++	<groupId>biz.paluch.logging</groupId>
++	<version>1.1.1-SNAPSHOT</version>
++	<artifactId>logstash-gelf</artifactId>
+ 
+-    <name>logstash logging connectors</name>
+-    <url>https://github.com/mp911de/logstash-gelf/</url>
+-    <inceptionYear>2013</inceptionYear>
++	<name>logstash logging connectors</name>
++	<url>https://github.com/mp911de/logstash-gelf/</url>
++	<inceptionYear>2013</inceptionYear>
+ 
+-    <scm>
+-        <connection>scm:git://github.com/mp911de/logstash-gelf.git</connection>
+-        <developerConnection>scm:git:git@github.com:mp911de/logstash-gelf.git</developerConnection>
+-        <url>http://github.com/mp911de/logstash-gelf/</url>
+-        <tag>HEAD</tag>
+-    </scm>
++	<scm>
++		<connection>scm:git://github.com/mp911de/logstash-gelf.git</connection>
++		<developerConnection>scm:git:git@github.com:mp911de/logstash-gelf.git</developerConnection>
++		<url>http://github.com/mp911de/logstash-gelf/</url>
++		<tag>HEAD</tag>
++	</scm>
+ 
+-    <issueManagement>
+-        <system>GitHub</system>
+-        <url>https://github.com/mp911de/logstash-gelf/issues</url>
+-    </issueManagement>
++	<issueManagement>
++		<system>GitHub</system>
++		<url>https://github.com/mp911de/logstash-gelf/issues</url>
++	</issueManagement>
+ 
+-    <licenses>
+-        <license>
+-            <name>MIT License</name>
+-            <url>http://www.opensource.org/licenses/mit-license.php</url>
+-            <distribution>repo</distribution>
+-        </license>
+-    </licenses>
++	<licenses>
++		<license>
++			<name>MIT License</name>
++			<url>http://www.opensource.org/licenses/mit-license.php</url>
++			<distribution>repo</distribution>
++		</license>
++	</licenses>
++
++	<properties>
++		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
++		<maven.compiler.target>1.6</maven.compiler.target>
++		<maven.compiler.source>1.6</maven.compiler.source>
+ 
+-    <properties>
+-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+-        <maven.compiler.target>1.6</maven.compiler.target>
+-        <maven.compiler.source>1.6</maven.compiler.source>
+-        
+ 		<!-- Versions -->
+ 		<com.googlecode.json-simple.version>1.1</com.googlecode.json-simple.version>
+ 		<log4j.version>1.2.14</log4j.version>
+@@ -49,80 +50,111 @@
+ 		<ch.qos.logback.logback-classic.version>1.0.6</ch.qos.logback.logback-classic.version>
+ 	</properties>
+ 
+-    <developers>
+-        <developer>
+-            <email>mpaluch@paluch.biz</email>
+-            <name>Mark Paluch</name>
+-            <timezone>Europe/Berlin</timezone>
+-            <url>http://www.paluch.biz</url>
+-        </developer>
+-    </developers>
++	<developers>
++		<developer>
++			<email>mpaluch@paluch.biz</email>
++			<name>Mark Paluch</name>
++			<timezone>Europe/Berlin</timezone>
++			<url>http://www.paluch.biz</url>
++		</developer>
++	</developers>
++
++	<build>
++		<resources>
++			<resource>
++				<directory>src/main/resources</directory>
++				<filtering>true</filtering>
++			</resource>
++		</resources>
++		<plugins>
++			<plugin>
++				<groupId>org.apache.maven.plugins</groupId>
++				<artifactId>maven-assembly-plugin</artifactId>
++				<executions>
++					<execution>
++						<id>dist-assembly</id>
++						<phase>package</phase>
++						<goals>
++							<goal>single</goal>
++						</goals>
++					</execution>
++				</executions>
++				<configuration>
++					<descriptor>src/main/assembly/assembly.xml</descriptor>
++					<attach>true</attach>
++					<classifier>module</classifier>
++				</configuration>
++			</plugin>
+ 
+-    <build>
+-        <resources>
+-            <resource>
+-                <directory>src/main/resources</directory>
+-                <filtering>true</filtering>
+-            </resource>
+-        </resources>
+-        <plugins>
+-            <plugin>
+-                <groupId>org.apache.maven.plugins</groupId>
+-                <artifactId>maven-assembly-plugin</artifactId>
+-                <executions>
+-                    <execution>
+-                        <id>dist-assembly</id>
+-                        <phase>package</phase>
+-                        <goals>
+-                            <goal>single</goal>
+-                        </goals>
+-                    </execution>
+-                </executions>
+-                <configuration>
+-                    <descriptor>src/main/assembly/assembly.xml</descriptor>
+-                    <attach>true</attach>
+-                    <classifier>module</classifier>
+-                </configuration>
+-            </plugin>
++			<plugin>
++				<groupId>org.apache.maven.plugins</groupId>
++				<artifactId>maven-release-plugin</artifactId>
++				<version>2.4.1</version>
++				<configuration>
++					<releaseProfiles>sonatype-oss-release</releaseProfiles>
++					<goals>deploy</goals>
++				</configuration>
++			</plugin>
+ 
+-            <plugin>
+-                <groupId>org.apache.maven.plugins</groupId>
+-                <artifactId>maven-release-plugin</artifactId>
+-                <version>2.4.1</version>
+-                <configuration>
+-                    <releaseProfiles>sonatype-oss-release</releaseProfiles>
+-                    <goals>deploy</goals>
+-                </configuration>
+-            </plugin>
+-        </plugins>
+-    </build>
++			<plugin>
++				<groupId>org.codehaus.mojo</groupId>
++				<artifactId>exec-maven-plugin</artifactId>
++				<version>1.2.1</version>
++				<executions>
++					<execution>
++						<phase>process-classes</phase>
++						<goals>
++							<goal>java</goal>
++						</goals>
++					</execution>
++				</executions>
++				<configuration>
++					<mainClass>org.apache.logging.log4j.core.config.plugins.PluginManager</mainClass>
++					<arguments>
++						<argument>${project.build.outputDirectory}</argument>
++						<argument>biz.paluch.logging.gelf.log4j2</argument>
++					</arguments>
++				</configuration>
++			</plugin>
++		</plugins>
++	</build>
+ 
+-    <dependencies>
+-        <dependency>
+-            <groupId>com.googlecode.json-simple</groupId>
+-            <artifactId>json-simple</artifactId>
+-            <version>${com.googlecode.json-simple.version}</version>
+-        </dependency>
+-        <dependency>
+-            <groupId>log4j</groupId>
+-            <artifactId>log4j</artifactId>
+-            <version>${log4j.version}</version>
+-        </dependency>
+-        <dependency>
+-            <groupId>junit</groupId>
+-            <artifactId>junit</artifactId>
+-            <version>${junit.version}</version>
+-            <scope>test</scope>
+-        </dependency>
+-        <dependency>
+-            <groupId>org.slf4j</groupId>
+-            <artifactId>slf4j-api</artifactId>
+-            <version>${org.slf4j.slf4j-api.version}</version>
+-        </dependency>
+-        <dependency>
+-            <groupId>ch.qos.logback</groupId>
+-            <artifactId>logback-classic</artifactId>
+-            <version>${ch.qos.logback.logback-classic.version}</version>
+-        </dependency>
+-    </dependencies>
++	<dependencies>
++		<dependency>
++			<groupId>com.googlecode.json-simple</groupId>
++			<artifactId>json-simple</artifactId>
++			<version>${com.googlecode.json-simple.version}</version>
++		</dependency>
++		<dependency>
++			<groupId>log4j</groupId>
++			<artifactId>log4j</artifactId>
++			<version>${log4j.version}</version>
++		</dependency>
++		<dependency>
++			<groupId>org.apache.logging.log4j</groupId>
++			<artifactId>log4j-api</artifactId>
++			<version>2.0-beta9</version>
++		</dependency>
++		<dependency>
++			<groupId>org.apache.logging.log4j</groupId>
++			<artifactId>log4j-core</artifactId>
++			<version>2.0-beta9</version>
++		</dependency>
++		<dependency>
++			<groupId>junit</groupId>
++			<artifactId>junit</artifactId>
++			<version>${junit.version}</version>
++			<scope>test</scope>
++		</dependency>
++		<dependency>
++			<groupId>org.slf4j</groupId>
++			<artifactId>slf4j-api</artifactId>
++			<version>${org.slf4j.slf4j-api.version}</version>
++		</dependency>
++		<dependency>
++			<groupId>ch.qos.logback</groupId>
++			<artifactId>logback-classic</artifactId>
++			<version>${ch.qos.logback.logback-classic.version}</version>
++		</dependency>
++	</dependencies>
+ </project>
+\ No newline at end of file
+diff --git a/src/main/java/biz/paluch/logging/gelf/GelfMessageEnricher.java b/src/main/java/biz/paluch/logging/gelf/GelfMessageEnricher.java
+deleted file mode 100644
+index 0928ad2..0000000
+--- a/src/main/java/biz/paluch/logging/gelf/GelfMessageEnricher.java
++++ /dev/null
+@@ -1,11 +0,0 @@
+-package biz.paluch.logging.gelf;
+-
+-import biz.paluch.logging.gelf.intern.GelfMessage;
+-
+-/**
+- * @author <a href="mailto:mpaluch@paluch.biz">Mark Paluch</a>
+- * @since 26.09.13 18:22
+- */
+-public interface GelfMessageEnricher {
+-    void enrichMessage(GelfMessage gelfMessage, LogEvent logEvent);
+-}
+diff --git a/src/main/java/biz/paluch/logging/gelf/GelfUtil.java b/src/main/java/biz/paluch/logging/gelf/GelfUtil.java
+index c6639f8..e378b72 100644
+--- a/src/main/java/biz/paluch/logging/gelf/GelfUtil.java
++++ b/src/main/java/biz/paluch/logging/gelf/GelfUtil.java
+@@ -30,8 +30,8 @@ public class GelfUtil {
+ 
+ 	}
+ 
+-	public static void addMdcProfiling(GelfMessage gelfMessage) {
+-		Object requestStartMs = MDC.get(MDC_REQUEST_START_MS);
++	public static void addMdcProfiling(LogEvent logEvent, GelfMessage gelfMessage) {
++		Object requestStartMs = logEvent.getMdc(MDC_REQUEST_START_MS);
+ 		long timestamp = -1;
+ 
+ 		if (requestStartMs instanceof Long) {
+diff --git a/src/main/java/biz/paluch/logging/gelf/LogEvent.java b/src/main/java/biz/paluch/logging/gelf/LogEvent.java
+index 6a7c273..039d918 100644
+--- a/src/main/java/biz/paluch/logging/gelf/LogEvent.java
++++ b/src/main/java/biz/paluch/logging/gelf/LogEvent.java
+@@ -16,4 +16,7 @@ public interface LogEvent {
+     String getSyslogLevel();
+ 
+     String getValue(MessageField field);
++
++    String getMdc(String mdcName);
++    
+ }
+diff --git a/src/main/java/biz/paluch/logging/gelf/log4j/MdcGelfMessageAssembler.java b/src/main/java/biz/paluch/logging/gelf/MdcGelfMessageAssembler.java
+similarity index 80%
+rename from src/main/java/biz/paluch/logging/gelf/log4j/MdcGelfMessageAssembler.java
+rename to src/main/java/biz/paluch/logging/gelf/MdcGelfMessageAssembler.java
+index e3dd09e..3e478eb 100644
+--- a/src/main/java/biz/paluch/logging/gelf/log4j/MdcGelfMessageAssembler.java
++++ b/src/main/java/biz/paluch/logging/gelf/MdcGelfMessageAssembler.java
+@@ -1,14 +1,9 @@
+-package biz.paluch.logging.gelf.log4j;
++package biz.paluch.logging.gelf;
+ 
+-import biz.paluch.logging.gelf.LogEvent;
+-
+-import biz.paluch.logging.gelf.GelfMessageAssembler;
+-import biz.paluch.logging.gelf.GelfUtil;
+-import biz.paluch.logging.gelf.MdcMessageField;
+-import biz.paluch.logging.gelf.PropertyProvider;
+ import biz.paluch.logging.gelf.intern.GelfMessage;
+ 
+ /**
++ * Message-Assembler using MDC.
+  * @author <a href="mailto:mpaluch@paluch.biz">Mark Paluch</a>
+  * @since 26.09.13 15:05
+  */
+@@ -32,7 +27,7 @@ public class MdcGelfMessageAssembler extends GelfMessageAssembler {
+ 
+ 		GelfMessage gelfMessage = super.createGelfMessage(logEvent);
+ 		if (mdcProfiling) {
+-			GelfUtil.addMdcProfiling(gelfMessage);
++			GelfUtil.addMdcProfiling(logEvent, gelfMessage);
+ 		}
+ 
+ 		return gelfMessage;
+diff --git a/src/main/java/biz/paluch/logging/gelf/log4j/GelfLogAppender.java b/src/main/java/biz/paluch/logging/gelf/log4j/GelfLogAppender.java
+index 2cf7495..47165ee 100644
+--- a/src/main/java/biz/paluch/logging/gelf/log4j/GelfLogAppender.java
++++ b/src/main/java/biz/paluch/logging/gelf/log4j/GelfLogAppender.java
+@@ -5,6 +5,7 @@ import java.net.SocketException;
+ import java.net.UnknownHostException;
+ 
+ import biz.paluch.logging.gelf.LogMessageField;
++import biz.paluch.logging.gelf.MdcGelfMessageAssembler;
+ import org.apache.log4j.AppenderSkeleton;
+ import org.apache.log4j.spi.LoggingEvent;
+ 
+diff --git a/src/main/java/biz/paluch/logging/gelf/log4j/Log4jLogEvent.java b/src/main/java/biz/paluch/logging/gelf/log4j/Log4jLogEvent.java
+index d55639e..394904b 100644
+--- a/src/main/java/biz/paluch/logging/gelf/log4j/Log4jLogEvent.java
++++ b/src/main/java/biz/paluch/logging/gelf/log4j/Log4jLogEvent.java
+@@ -2,7 +2,6 @@ package biz.paluch.logging.gelf.log4j;
+ 
+ import org.apache.log4j.Level;
+ import org.apache.log4j.MDC;
+-import org.apache.log4j.spi.LocationInfo;
+ import org.apache.log4j.spi.LoggingEvent;
+ import org.apache.log4j.spi.ThrowableInformation;
+ 
+@@ -16,100 +15,104 @@ import biz.paluch.logging.gelf.MessageField;
+  * @author <a href="mailto:mpaluch@paluch.biz">Mark Paluch</a>
+  * @since 26.09.13 15:37
+  */
+-public class Log4jLogEvent implements LogEvent {
+-
+-	private LoggingEvent loggingEvent;
+-
+-	public Log4jLogEvent(LoggingEvent loggingEvent) {
+-		this.loggingEvent = loggingEvent;
+-	}
+-
+-	@Override
+-	public String getMessage() {
+-		return loggingEvent.getRenderedMessage();
+-	}
+-
+-	@Override
+-	public Object[] getParameters() {
+-		return new Object[0];
+-	}
+-
+-	@Override
+-	public Throwable getThrowable() {
+-		ThrowableInformation ti = loggingEvent.getThrowableInformation();
+-		if (ti != null) {
+-			return ti.getThrowable();
+-		}
+-
+-		return null;
+-	}
+-
+-	@Override
+-	public long getLogTimestamp() {
+-		return Log4jVersionChecker.getTimeStamp(loggingEvent);
+-	}
+-
+-	@Override
+-	public String getSyslogLevel() {
+-		return "" + levelToSyslogLevel(loggingEvent.getLevel());
+-	}
+-
+-	private int levelToSyslogLevel(final Level level) {
+-		final int syslogLevel;
+-
+-		switch (level.toInt()) {
+-		case Level.FATAL_INT:
+-			return 2;
+-		case Level.ERROR_INT:
+-			return 3;
+-		case Level.WARN_INT:
+-			return 4;
+-		case Level.INFO_INT:
+-			return 6;
+-		default:
+-			return 7;
+-
+-		}
+-	}
+-
+-	@Override
+-	public String getValue(MessageField field) {
+-		if (field instanceof LogMessageField) {
+-			return getValue((LogMessageField) field);
+-		}
+-
+-		if (field instanceof MdcMessageField) {
+-			return getValue((MdcMessageField) field);
+-		}
+-
+-		throw new UnsupportedOperationException("Cannot provide value for " + field);
+-	}
+-
+-	public String getValue(LogMessageField field) {
+-
+-		switch (field.getNamedLogField()) {
+-		case Severity:
+-			return loggingEvent.getLevel().toString();
+-		case ThreadName:
+-			return loggingEvent.getThreadName();
+-		case SourceClassName:
+-			return loggingEvent.getLocationInformation().getClassName();
+-		case SourceMethodName:
+-			return loggingEvent.getLocationInformation().getMethodName();
+-		case SourceSimpleClassName:
+-			return GelfUtil.getSimpleClassName(loggingEvent.getLocationInformation().getClassName());
+-		}
+-
+-		throw new UnsupportedOperationException("Cannot provide value for " + field);
+-	}
+-
+-	private String getValue(MdcMessageField field) {
+-
+-		Object value = MDC.get(field.getMdcName());
+-		if (value != null) {
+-			return value.toString();
+-		}
+-
+-		return null;
+-	}
++class Log4jLogEvent implements LogEvent {
++
++    private LoggingEvent loggingEvent;
++
++    public Log4jLogEvent(LoggingEvent loggingEvent) {
++        this.loggingEvent = loggingEvent;
++    }
++
++    @Override
++    public String getMessage() {
++        return loggingEvent.getRenderedMessage();
++    }
++
++    @Override
++    public Object[] getParameters() {
++        return new Object[0];
++    }
++
++    @Override
++    public Throwable getThrowable() {
++        ThrowableInformation ti = loggingEvent.getThrowableInformation();
++        if (ti != null) {
++            return ti.getThrowable();
++        }
++
++        return null;
++    }
++
++    @Override
++    public long getLogTimestamp() {
++        return Log4jVersionChecker.getTimeStamp(loggingEvent);
++    }
++
++    @Override
++    public String getSyslogLevel() {
++        return "" + levelToSyslogLevel(loggingEvent.getLevel());
++    }
++
++    private int levelToSyslogLevel(final Level level) {
++        final int syslogLevel;
++
++        switch (level.toInt()) {
++            case Level.FATAL_INT:
++                return 2;
++            case Level.ERROR_INT:
++                return 3;
++            case Level.WARN_INT:
++                return 4;
++            case Level.INFO_INT:
++                return 6;
++            default:
++                return 7;
++
++        }
++    }
++
++    @Override
++    public String getValue(MessageField field) {
++        if (field instanceof LogMessageField) {
++            return getValue((LogMessageField) field);
++        }
++
++        if (field instanceof MdcMessageField) {
++            return getValue((MdcMessageField) field);
++        }
++
++        throw new UnsupportedOperationException("Cannot provide value for " + field);
++    }
++
++    public String getValue(LogMessageField field) {
++
++        switch (field.getNamedLogField()) {
++            case Severity:
++                return loggingEvent.getLevel().toString();
++            case ThreadName:
++                return loggingEvent.getThreadName();
++            case SourceClassName:
++                return loggingEvent.getLocationInformation().getClassName();
++            case SourceMethodName:
++                return loggingEvent.getLocationInformation().getMethodName();
++            case SourceSimpleClassName:
++                return GelfUtil.getSimpleClassName(loggingEvent.getLocationInformation().getClassName());
++        }
++
++        throw new UnsupportedOperationException("Cannot provide value for " + field);
++    }
++
++    private String getValue(MdcMessageField field) {
++
++        return getMdc(field.getMdcName());
++    }
++
++    @Override
++    public String getMdc(String mdcName) {
++        Object value = MDC.get(mdcName);
++        if (value != null) {
++            return value.toString();
++        }
++        return null;
++    }
+ }
+diff --git a/src/main/java/biz/paluch/logging/gelf/log4j/Log4jVersionChecker.java b/src/main/java/biz/paluch/logging/gelf/log4j/Log4jVersionChecker.java
+index f321448..d428eca 100644
+--- a/src/main/java/biz/paluch/logging/gelf/log4j/Log4jVersionChecker.java
++++ b/src/main/java/biz/paluch/logging/gelf/log4j/Log4jVersionChecker.java
+@@ -5,7 +5,7 @@ import java.lang.reflect.Method;
+ 
+ import org.apache.log4j.spi.LoggingEvent;
+ 
+-public class Log4jVersionChecker {
++class Log4jVersionChecker {
+ 
+     private static Method methodGetTimeStamp = null;
+ 
+diff --git a/src/main/java/biz/paluch/logging/gelf/log4j2/GelfLogAppender.java b/src/main/java/biz/paluch/logging/gelf/log4j2/GelfLogAppender.java
+new file mode 100644
+index 0000000..79e352f
+--- /dev/null
++++ b/src/main/java/biz/paluch/logging/gelf/log4j2/GelfLogAppender.java
+@@ -0,0 +1,353 @@
++package biz.paluch.logging.gelf.log4j2;
++
++import java.io.IOException;
++import java.net.SocketException;
++import java.net.UnknownHostException;
++
++import org.apache.logging.log4j.Logger;
++import org.apache.logging.log4j.core.Filter;
++import org.apache.logging.log4j.core.LogEvent;
++import org.apache.logging.log4j.core.appender.AbstractAppender;
++import org.apache.logging.log4j.core.config.plugins.Plugin;
++import org.apache.logging.log4j.core.config.plugins.PluginAttribute;
++import org.apache.logging.log4j.core.config.plugins.PluginElement;
++import org.apache.logging.log4j.core.config.plugins.PluginFactory;
++import org.apache.logging.log4j.core.helpers.Strings;
++import org.apache.logging.log4j.status.StatusLogger;
++
++import biz.paluch.logging.gelf.LogMessageField;
++import biz.paluch.logging.gelf.MdcGelfMessageAssembler;
++import biz.paluch.logging.gelf.MdcMessageField;
++import biz.paluch.logging.gelf.StaticMessageField;
++import biz.paluch.logging.gelf.intern.GelfMessage;
++import biz.paluch.logging.gelf.intern.GelfSender;
++import biz.paluch.logging.gelf.intern.GelfSenderFactory;
++
++/**
++ * Logging-Handler for GELF (Graylog Extended Logging Format). This Java-Util-Logging Handler creates GELF Messages and posts
++ * them using UDP (default) or TCP. Following parameters are supported/needed:
++ * <p/>
++ * <ul>
++ * <li>host (Mandatory): Hostname/IP-Address of the Logstash Host
++ * <ul>
++ * <li>tcp:(the host) for TCP, e.g. tcp:127.0.0.1 or tcp:some.host.com</li>
++ * <li>udp:(the host) for UDP, e.g. udp:127.0.0.1 or udp:some.host.com</li>
++ * <li>(the host) for UDP, e.g. 127.0.0.1 or some.host.com</li>
++ * </ul>
++ * </li>
++ * <li>port (Optional): Port, default 12201</li>
++ * <li>extractStackTrace (Optional): Post Stack-Trace to StackTrace field, default false</li>
++ * <li>filterStackTrace (Optional): Perform Stack-Trace filtering (true/false), default false</li>
++ * <li>mdcProfiling (Optional): Perform Profiling (Call-Duration) based on MDC Data. See <a href="#mdcProfiling">MDC
++ * Profiling</a>, default false</li>
++ * <li>facility (Optional): Name of the Facility, default gelf-java</li>
++ * </ul>
++ * 
++ * <h2>Fields</h2>
++ * 
++ * <p>
++ * Log4j v2 supports an extensive and flexible configuration in contrast to other log frameworks (JUL, log4j v1). This allows
++ * you to specify your needed fields you want to use in the GELF message. An empty field configuration results in a message
++ * containing only
++ * </p>
++ * 
++ * <ul>
++ * <li>timestamp</li>
++ * <li>level (syslog level)</li>
++ * <li>host</li>
++ * <li>facility</li>
++ * <li>short_message</li>
++ * <li>short_message</li>
++ * </ul>
++ * </br>
++ * 
++ * <p>
++ * You can add different fields:
++ * </p>
++ * 
++ * <ul>
++ * <li>Static Literals</li>
++ * <li>MDC Fields</li>
++ * <li>Log-Event fields (using <a href="http://logging.apache.org/log4j/2.x/manual/layouts.html#PatternLayout">Pattern
++ * Layout</a>)</li>
++ * </ul>
++ * </br>
++ * 
++ * In order to do so, use nested Field elements below the Appender element.
++ * 
++ * <h3>Static Literals</h3> <code>
++      &lt;Field name="fieldName1" literal="your literal value" /&gt;
++ * </code>
++ * 
++ * <h3>MDC Fields</h3> <code>
++    &lt;Field name="fieldName1" mdc="name of the MDC entry" /&gt;
++ * </code>
++ * 
++ * 
++ * <h3>Log-Event fields</h3>
++ * <p>
++ * See also: <a href="http://logging.apache.org/log4j/2.x/manual/layouts.html#PatternLayout">Pattern Layout</a>
++ * </p>
++ * 
++ * <p>
++ * You can use all built-in Pattern Fields:
++ * </p>
++ * <code>
++    &lt;Field name="simpleClassName" pattern="%C{1}" /&gt;<br/>
++    &lt;Field name="timestamp" pattern="%d{dd MMM yyyy HH:mm:ss,SSS}" /&gt;<br/>
++    &lt;Field name="level" pattern="%level" /&gt;
++ </code>
++ * 
++ * <p>
++ * Additionally, you can add the <strong>host</strong>-Field, which can supply you either the FQDN hostname, the simple hostname
++ * or the local address.
++ * </p>
++ * <table class="overviewSummary" border="0" cellpadding="3" cellspacing="0" style="border-bottom:1px solid #9eadc0;">
++ * <tbody>
++ * <tr>
++ * <th class="colFirst">Option</th>
++ * <th class="colLast">Description</th>
++ * </tr>
++ * <tr class="altColor">
++ * <td class="colFirst" align="center">
++ * <b>host</b><br>
++ * &nbsp;&nbsp;{["fqdn"<br>
++ * &nbsp;&nbsp;|"simple"<br>
++ * &nbsp;&nbsp;|"address"]}</td>
++ * <td class="colLast">
++ * <p>
++ * Outputs either the FQDN hostname, the simple hostname or the local address.
++ * </p>
++ * <p>
++ * You can follow the throwable conversion word with an option in the form <b>%host{option}</b>.
++ * </p>
++ * <p>
++ * <b>%host{fqdn}</b> default setting, outputs the FQDN hostname, e.g. www.you.host.name.com.
++ * </p>
++ * <p>
++ * <b>%host{simple}</b> outputs simple hostname, e.g. www.
++ * </p>
++ * <p>
++ * <b>%host{address}</b> outputs the local IP address of the found hostname, e.g. 1.2.3.4 or affe:affe:affe::1.
++ * </p>
++ * </td>
++ * </tr>
++ * </tbody>
++ * </table>
++ * 
++ * 
++ * <p/>
++ * <a name="mdcProfiling"></a>
++ * <h2>MDC Profiling</h2>
++ * <p>
++ * MDC Profiling allows to calculate the runtime from request start up to the time until the log message was generated. You must
++ * set one value in the MDC:
++ * <ul>
++ * <li>profiling.requestStart.millis: Time Millis of the Request-Start (Long or String)</li>
++ * </ul>
++ * <p/>
++ * Two values are set by the Log Appender:
++ * <ul>
++ * <li>profiling.requestEnd: End-Time of the Request-End in Date.toString-representation</li>
++ * <li>profiling.requestDuration: Duration of the request (e.g. 205ms, 16sec)</li>
++ * </ul>
++ * <p/>
++ * </p>
++ */
++@Plugin(name = "Gelf", category = "Core", elementType = "appender", printObject = true)
++public class GelfLogAppender extends AbstractAppender {
++    private static final Logger LOGGER = StatusLogger.getLogger();
++
++    protected GelfSender gelfSender;
++    private MdcGelfMessageAssembler gelfMessageAssembler;
++
++    public GelfLogAppender(String name, Filter filter, MdcGelfMessageAssembler gelfMessageAssembler) {
++        super(name, filter, null);
++        this.gelfMessageAssembler = gelfMessageAssembler;
++    }
++
++    /**
++     * 
++     * @param name
++     * @param filter
++     * @param fields
++     * @param graylogHost
++     * @param host
++     * @param graylogPort
++     * @param port
++     * @param extractStackTrace
++     * @param facility
++     * @param filterStackTrace
++     * @param mdcProfiling
++     * @param maximumMessageSize
++     * @param testSenderClass
++     * @return GelfLogAppender
++     */
++    @PluginFactory
++    public static GelfLogAppender createAppender(@PluginAttribute("name") String name, @PluginElement("Filter") Filter filter,
++            @PluginElement("Field") final GelfLogField[] fields, @PluginAttribute("graylogHost") String graylogHost,
++            @PluginAttribute("host") String host, @PluginAttribute("graylogPort") String graylogPort,
++            @PluginAttribute("port") String port, @PluginAttribute("extractStackTrace") String extractStackTrace,
++            @PluginAttribute("facility") String facility, @PluginAttribute("filterStackTrace") String filterStackTrace,
++            @PluginAttribute("mdcProfiling") String mdcProfiling,
++            @PluginAttribute("maximumMessageSize") String maximumMessageSize,
++            @PluginAttribute("testSenderClass") String testSenderClass) {
++
++        MdcGelfMessageAssembler mdcGelfMessageAssembler = new MdcGelfMessageAssembler();
++
++        if (name == null) {
++            LOGGER.error("No name provided for " + GelfLogAppender.class.getSimpleName());
++            return null;
++        }
++
++        if (Strings.isEmpty(host) && Strings.isEmpty(graylogHost)) {
++            LOGGER.error("No host provided for " + GelfLogAppender.class.getSimpleName());
++            return null;
++        }
++
++        if (Strings.isNotEmpty(host)) {
++            mdcGelfMessageAssembler.setHost(host);
++        }
++
++        if (Strings.isNotEmpty(graylogHost)) {
++            mdcGelfMessageAssembler.setHost(graylogHost);
++        }
++
++        if (Strings.isNotEmpty(port)) {
++            mdcGelfMessageAssembler.setPort(Integer.parseInt(port));
++        }
++
++        if (Strings.isNotEmpty(graylogPort)) {
++            mdcGelfMessageAssembler.setPort(Integer.parseInt(graylogPort));
++        }
++
++        if (facility != null) {
++            mdcGelfMessageAssembler.setFacility(facility);
++        }
++
++        if (extractStackTrace != null) {
++            mdcGelfMessageAssembler.setExtractStackTrace(extractStackTrace.equals("true"));
++        }
++
++        if (filterStackTrace != null) {
++            mdcGelfMessageAssembler.setFilterStackTrace(filterStackTrace.equals("true"));
++        }
++
++        if (mdcProfiling != null) {
++            mdcGelfMessageAssembler.setMdcProfiling(mdcProfiling.equals("true"));
++        }
++
++        if (maximumMessageSize != null) {
++            mdcGelfMessageAssembler.setMaximumMessageSize(Integer.parseInt(maximumMessageSize));
++        }
++
++        configureFields(mdcGelfMessageAssembler, fields);
++
++        GelfLogAppender result = new GelfLogAppender(name, filter, mdcGelfMessageAssembler);
++
++        if (testSenderClass != null) {
++            result.setTestSenderClass(testSenderClass);
++        }
++
++        return result;
++
++    }
++
++    /**
++     * Configure fields (literals, MDC, layout).
++     * 
++     * @param mdcGelfMessageAssembler
++     * @param fields
++     */
++    private static void configureFields(MdcGelfMessageAssembler mdcGelfMessageAssembler, GelfLogField[] fields) {
++        if (fields == null) {
++            mdcGelfMessageAssembler.addFields(LogMessageField.getDefaultMapping());
++            return;
++        }
++
++        for (GelfLogField field : fields) {
++
++            if (Strings.isNotEmpty(field.getMdc())) {
++                mdcGelfMessageAssembler.addField(new MdcMessageField(field.getName(), field.getMdc()));
++            }
++
++            if (Strings.isNotEmpty(field.getLiteral())) {
++                mdcGelfMessageAssembler.addField(new StaticMessageField(field.getName(), field.getLiteral()));
++            }
++
++            if (field.getPatternLayout() != null) {
++                mdcGelfMessageAssembler.addField(new PatternLogMessageField(field.getName(), null, field.getPatternLayout()));
++            }
++        }
++    }
++
++    @Override
++    public void append(LogEvent event) {
++        if (event == null) {
++            return;
++        }
++
++        try {
++            GelfMessage message = createGelfMessage(event);
++            if (!message.isValid()) {
++                reportError("GELF Message is invalid: " + message.toJson(), null);
++            }
++
++            if (null == gelfSender || !gelfSender.sendMessage(message)) {
++                reportError("Could not send GELF message", null);
++            }
++        } catch (Exception e) {
++            reportError("Could not send GELF message", e);
++        }
++    }
++
++    protected GelfMessage createGelfMessage(final LogEvent logEvent) {
++        return gelfMessageAssembler.createGelfMessage(new Log4j2LogEvent(logEvent));
++    }
++
++    private void reportError(String message, Exception exception) {
++        LOGGER.error(message, exception, 0);
++    }
++
++    @Override
++    public void stop() {
++        if (null != gelfSender) {
++            gelfSender.close();
++            gelfSender = null;
++        }
++        super.stop();
++    }
++
++    @Override
++    public void start() {
++        if (null == gelfSender) {
++            if (gelfMessageAssembler.getHost() == null) {
++                reportError("Graylog2 hostname is empty!", null);
++            } else {
++                try {
++                    this.gelfSender = GelfSenderFactory.createSender(gelfMessageAssembler.getHost(),
++                            gelfMessageAssembler.getPort());
++                } catch (UnknownHostException e) {
++                    reportError("Unknown Graylog2 hostname:" + gelfMessageAssembler.getHost(), e);
++                } catch (SocketException e) {
++                    reportError("Socket exception", e);
++                } catch (IOException e) {
++                    reportError("IO exception", e);
++                }
++            }
++        }
++        super.start();
++    }
++
++    public void setTestSenderClass(String testSender) {
++        // This only used for testing
++        try {
++            if (null != testSender) {
++                final Class clazz = Class.forName(testSender);
++                gelfSender = (GelfSender) clazz.newInstance();
++            }
++        } catch (final Exception e) {
++            // ignore
++        }
++    }
++}
+diff --git a/src/main/java/biz/paluch/logging/gelf/log4j2/GelfLogField.java b/src/main/java/biz/paluch/logging/gelf/log4j2/GelfLogField.java
+new file mode 100644
+index 0000000..99c53e0
+--- /dev/null
++++ b/src/main/java/biz/paluch/logging/gelf/log4j2/GelfLogField.java
+@@ -0,0 +1,74 @@
++package biz.paluch.logging.gelf.log4j2;
++
++import org.apache.logging.log4j.Logger;
++import org.apache.logging.log4j.core.config.Configuration;
++import org.apache.logging.log4j.core.config.plugins.Plugin;
++import org.apache.logging.log4j.core.config.plugins.PluginAttribute;
++import org.apache.logging.log4j.core.config.plugins.PluginConfiguration;
++import org.apache.logging.log4j.core.config.plugins.PluginFactory;
++import org.apache.logging.log4j.core.helpers.Strings;
++import org.apache.logging.log4j.core.layout.PatternLayout;
++import org.apache.logging.log4j.status.StatusLogger;
++
++/**
++ * Configuration for a log field.
++ */
++@Plugin(name = "Field", category = "Core", printObject = true)
++public class GelfLogField {
++
++    private static final Logger LOGGER = StatusLogger.getLogger();
++
++    private String name;
++    private String literal;
++    private String mdc;
++    private PatternLayout patternLayout;
++
++    public GelfLogField(String name, String literal, String mdc, PatternLayout patternLayout) {
++        this.name = name;
++        this.literal = literal;
++        this.mdc = mdc;
++        this.patternLayout = patternLayout;
++    }
++
++    public String getName() {
++        return name;
++    }
++
++    public String getLiteral() {
++        return literal;
++    }
++
++    public String getMdc() {
++        return mdc;
++    }
++
++    public PatternLayout getPatternLayout() {
++        return patternLayout;
++    }
++
++    @PluginFactory
++    public static GelfLogField createField(@PluginConfiguration final Configuration config,
++            @PluginAttribute("name") String name, @PluginAttribute("literal") String literalValue,
++            @PluginAttribute("mdc") String mdc, @PluginAttribute("pattern") String pattern) {
++
++        final boolean isPattern = Strings.isNotEmpty(pattern);
++        final boolean isLiteralValue = Strings.isNotEmpty(literalValue);
++        final boolean isMDC = Strings.isNotEmpty(mdc);
++
++        if (Strings.isEmpty(name)) {
++            LOGGER.error("The name is empty");
++            return null;
++        }
++
++        if ((isPattern && isLiteralValue) || (isPattern && isMDC) || (isLiteralValue && isMDC)) {
++            LOGGER.error("The pattern, literal, and mdc attributes are mutually exclusive.");
++            return null;
++        }
++
++        if (isPattern) {
++            return new GelfLogField(name, null, null, PatternLayout.createLayout(pattern, config, null, null, "false"));
++        }
++
++        return new GelfLogField(name, literalValue, mdc, null);
++    }
++}
+diff --git a/src/main/java/biz/paluch/logging/gelf/log4j2/HostnameConverter.java b/src/main/java/biz/paluch/logging/gelf/log4j2/HostnameConverter.java
+new file mode 100644
+index 0000000..dcb722e
+--- /dev/null
++++ b/src/main/java/biz/paluch/logging/gelf/log4j2/HostnameConverter.java
+@@ -0,0 +1,82 @@
++package biz.paluch.logging.gelf.log4j2;
++
++import org.apache.logging.log4j.core.LogEvent;
++import org.apache.logging.log4j.core.config.plugins.Plugin;
++import org.apache.logging.log4j.core.pattern.ConverterKeys;
++import org.apache.logging.log4j.core.pattern.LogEventPatternConverter;
++
++import biz.paluch.logging.RuntimeContainer;
++
++/**
++ * Provides the servername/Hostname.
++ * 
++ * <table class="overviewSummary" border="0" cellpadding="3" cellspacing="0" style="border-bottom:1px solid #9eadc0;">
++ * <tbody>
++ * <tr>
++ * <th class="colFirst">Option</th>
++ * <th class="colLast">Description</th>
++ * </tr>
++ * <tr class="altColor">
++ * <td class="colFirst" align="center">
++ * <b>host</b><br>
++ * &nbsp;&nbsp;{["fqdn"<br>
++ * &nbsp;&nbsp;|"simple"<br>
++ * &nbsp;&nbsp;|"address"]}</td>
++ * <td class="colLast">
++ * <p>
++ * Outputs either the FQDN hostname, the simple hostname or the local address.
++ * </p>
++ * <p>
++ * You can follow the throwable conversion word with an option in the form <b>%host{option}</b>.
++ * </p>
++ * <p>
++ * <b>%host{fqdn}</b> default setting, outputs the FQDN hostname, e.g. www.you.host.name.com.
++ * </p>
++ * <p>
++ * <b>%host{simple}</b> outputs simple hostname, e.g. www.
++ * </p>
++ * <p>
++ * <b>%host{address}</b> outputs the local IP address of the found hostname, e.g. 1.2.3.4 or affe:affe:affe::1.
++ * </p>
++ * </td>
++ * </tr>
++ * </tbody>
++ * </table>
++ * 
++ */
++@Plugin(name = "HostnameConverter", category = "Converter")
++@ConverterKeys({ "host", })
++public class HostnameConverter extends LogEventPatternConverter {
++
++    public HostnameConverter(String style) {
++        super(HostnameConverter.class.getSimpleName(), style);
++    }
++
++    public static HostnameConverter newInstance(String[] format) {
++        String style = null;
++        if (format.length > 0) {
++            style = format[0];
++        }
++        return new HostnameConverter(style);
++    }
++
++    @Override
++    public void format(LogEvent event, StringBuilder toAppendTo) {
++        if (getStyle() == null || getStyle().equals("") || getStyle().equals("fqdn")) {
++            toAppendTo.append(RuntimeContainer.FQDN_HOSTNAME);
++        }
++
++        if (getStyle() != null && getStyle().equals("simple")) {
++            toAppendTo.append(RuntimeContainer.HOSTNAME);
++
++        }
++
++        if (getStyle() != null && getStyle().equals("address")) {
++            toAppendTo.append(RuntimeContainer.ADDRESS);
++        }
++    }
++
++    public String getStyle() {
++        return getStyleClass(null);
++    }
++}
+diff --git a/src/main/java/biz/paluch/logging/gelf/log4j2/Log4j2LogEvent.java b/src/main/java/biz/paluch/logging/gelf/log4j2/Log4j2LogEvent.java
+new file mode 100644
+index 0000000..cdbfa65
+--- /dev/null
++++ b/src/main/java/biz/paluch/logging/gelf/log4j2/Log4j2LogEvent.java
+@@ -0,0 +1,96 @@
++package biz.paluch.logging.gelf.log4j2;
++
++import java.util.Map;
++
++import org.apache.logging.log4j.Level;
++
++import biz.paluch.logging.gelf.LogEvent;
++import biz.paluch.logging.gelf.MdcMessageField;
++import biz.paluch.logging.gelf.MessageField;
++
++/**
++ */
++class Log4j2LogEvent implements LogEvent {
++
++    private org.apache.logging.log4j.core.LogEvent logEvent;
++
++    public Log4j2LogEvent(org.apache.logging.log4j.core.LogEvent logEvent) {
++        this.logEvent = logEvent;
++    }
++
++    @Override
++    public String getMessage() {
++        return logEvent.getMessage().getFormattedMessage();
++    }
++
++    @Override
++    public Object[] getParameters() {
++        return new Object[0];
++    }
++
++    @Override
++    public Throwable getThrowable() {
++        return logEvent.getThrown();
++    }
++
++    @Override
++    public long getLogTimestamp() {
++        return logEvent.getMillis();
++    }
++
++    @Override
++    public String getSyslogLevel() {
++        return "" + levelToSyslogLevel(logEvent.getLevel());
++    }
++
++    private int levelToSyslogLevel(final Level level) {
++        final int syslogLevel;
++
++        switch (level) {
++            case FATAL:
++                return 2;
++            case ERROR:
++                return 3;
++            case WARN:
++                return 4;
++            case INFO:
++                return 6;
++            default:
++                return 7;
++
++        }
++    }
++
++    @Override
++    public String getValue(MessageField field) {
++
++        if (field instanceof MdcMessageField) {
++            return getValue((MdcMessageField) field);
++        }
++
++        if (field instanceof PatternLogMessageField) {
++            return getValue((PatternLogMessageField) field);
++        }
++
++        throw new UnsupportedOperationException("Cannot provide value for " + field);
++    }
++
++    public String getValue(PatternLogMessageField field) {
++        return field.getPatternLayout().toSerializable(logEvent);
++    }
++
++    private String getValue(MdcMessageField field) {
++
++        return getMdc(field.getMdcName());
++    }
++
++    @Override
++    public String getMdc(String mdcName) {
++        Map<String, String> mdcPropertyMap = logEvent.getContextMap();
++        if (null != mdcPropertyMap && mdcPropertyMap.containsKey(mdcName)) {
++            return mdcPropertyMap.get(mdcName);
++        }
++
++        return null;
++    }
++}
+diff --git a/src/main/java/biz/paluch/logging/gelf/log4j2/PatternLogMessageField.java b/src/main/java/biz/paluch/logging/gelf/log4j2/PatternLogMessageField.java
+new file mode 100644
+index 0000000..b1c0389
+--- /dev/null
++++ b/src/main/java/biz/paluch/logging/gelf/log4j2/PatternLogMessageField.java
+@@ -0,0 +1,20 @@
++package biz.paluch.logging.gelf.log4j2;
++
++import biz.paluch.logging.gelf.LogMessageField;
++import org.apache.logging.log4j.core.layout.PatternLayout;
++
++/**
++ */
++public class PatternLogMessageField extends LogMessageField {
++
++    private PatternLayout patternLayout;
++
++    public PatternLogMessageField(String name, NamedLogField namedLogField, PatternLayout patternLayout) {
++        super(name, namedLogField);
++        this.patternLayout = patternLayout;
++    }
++
++    public PatternLayout getPatternLayout() {
++        return patternLayout;
++    }
++}
+diff --git a/src/main/java/biz/paluch/logging/gelf/log4j2/package-info.java b/src/main/java/biz/paluch/logging/gelf/log4j2/package-info.java
+new file mode 100644
+index 0000000..d0fa9b1
+--- /dev/null
++++ b/src/main/java/biz/paluch/logging/gelf/log4j2/package-info.java
+@@ -0,0 +1,4 @@
++/**
++ * log4j v2.x appender for logstash submission over GELF.
++ */
++package biz.paluch.logging.gelf.log4j2;
+\ No newline at end of file
+diff --git a/src/test/java/biz/paluch/logging/gelf/log4j/GelfTestSender.java b/src/test/java/biz/paluch/logging/gelf/GelfTestSender.java
+similarity index 94%
+rename from src/test/java/biz/paluch/logging/gelf/log4j/GelfTestSender.java
+rename to src/test/java/biz/paluch/logging/gelf/GelfTestSender.java
+index 8385809..fc3cf1a 100644
+--- a/src/test/java/biz/paluch/logging/gelf/log4j/GelfTestSender.java
++++ b/src/test/java/biz/paluch/logging/gelf/GelfTestSender.java
+@@ -1,4 +1,4 @@
+-package biz.paluch.logging.gelf.log4j;
++package biz.paluch.logging.gelf;
+ 
+ import biz.paluch.logging.gelf.intern.GelfMessage;
+ import biz.paluch.logging.gelf.intern.GelfSender;
+diff --git a/src/test/java/biz/paluch/logging/gelf/log4j2/GelfLogAppenderMinimalTest.java b/src/test/java/biz/paluch/logging/gelf/log4j2/GelfLogAppenderMinimalTest.java
+new file mode 100644
+index 0000000..015e6fb
+--- /dev/null
++++ b/src/test/java/biz/paluch/logging/gelf/log4j2/GelfLogAppenderMinimalTest.java
+@@ -0,0 +1,65 @@
++package biz.paluch.logging.gelf.log4j2;
++
++import static org.junit.Assert.assertEquals;
++
++import org.apache.logging.log4j.LogManager;
++import org.apache.logging.log4j.Logger;
++import org.apache.logging.log4j.ThreadContext;
++import org.apache.logging.log4j.core.LoggerContext;
++import org.apache.logging.log4j.core.config.ConfigurationFactory;
++import org.junit.AfterClass;
++import org.junit.Before;
++import org.junit.BeforeClass;
++import org.junit.Test;
++
++import biz.paluch.logging.gelf.GelfTestSender;
++import biz.paluch.logging.gelf.intern.GelfMessage;
++
++/**
++ */
++public class GelfLogAppenderMinimalTest {
++    private static LoggerContext loggerContext;
++
++    @BeforeClass
++    public static void beforeClass() {
++        System.setProperty(ConfigurationFactory.CONFIGURATION_FILE_PROPERTY, "log4j2-minimal.xml");
++        loggerContext = (LoggerContext) LogManager.getContext(false);
++    }
++
++    @AfterClass
++    public static void afterClass() throws Exception {
++        System.clearProperty(ConfigurationFactory.CONFIGURATION_FILE_PROPERTY);
++        loggerContext.reconfigure();
++    }
++
++    @Before
++    public void before() throws Exception {
++        GelfTestSender.getMessages().clear();
++        ThreadContext.clear();
++    }
++
++    @Test
++    public void testSimpleDebug() throws Exception {
++
++        Logger logger = loggerContext.getLogger(getClass().getName());
++        assertEquals(0, GelfTestSender.getMessages().size());
++        logger.debug("Blubb Test");
++        assertEquals(0, GelfTestSender.getMessages().size());
++
++    }
++
++    @Test
++    public void testSimpleInfo() throws Exception {
++
++        Logger logger = loggerContext.getLogger(getClass().getName());
++
++        logger.info("Blubb Test");
++        assertEquals(1, GelfTestSender.getMessages().size());
++
++        GelfMessage gelfMessage = GelfTestSender.getMessages().get(0);
++        assertEquals("Blubb Test", gelfMessage.getFullMessage());
++        assertEquals("6", gelfMessage.getLevel());
++        assertEquals("Blubb Test", gelfMessage.getShortMessage());
++
++    }
++}
+diff --git a/src/test/java/biz/paluch/logging/gelf/log4j2/GelfLogAppenderTest.java b/src/test/java/biz/paluch/logging/gelf/log4j2/GelfLogAppenderTest.java
+new file mode 100644
+index 0000000..5dd8efc
+--- /dev/null
++++ b/src/test/java/biz/paluch/logging/gelf/log4j2/GelfLogAppenderTest.java
+@@ -0,0 +1,96 @@
++package biz.paluch.logging.gelf.log4j2;
++
++import static org.junit.Assert.assertEquals;
++import static org.junit.Assert.assertNotNull;
++
++import org.apache.logging.log4j.LogManager;
++import org.apache.logging.log4j.Logger;
++import org.apache.logging.log4j.ThreadContext;
++import org.apache.logging.log4j.core.LoggerContext;
++import org.apache.logging.log4j.core.config.ConfigurationFactory;
++import org.junit.AfterClass;
++import org.junit.Before;
++import org.junit.BeforeClass;
++import org.junit.Test;
++
++import biz.paluch.logging.RuntimeContainer;
++import biz.paluch.logging.gelf.GelfTestSender;
++import biz.paluch.logging.gelf.GelfUtil;
++import biz.paluch.logging.gelf.intern.GelfMessage;
++
++/**
++ */
++public class GelfLogAppenderTest {
++    private static LoggerContext loggerContext;
++
++    @BeforeClass
++    public static void setupClass() {
++        System.setProperty(ConfigurationFactory.CONFIGURATION_FILE_PROPERTY, "log4j2.xml");
++        loggerContext = (LoggerContext) LogManager.getContext(false);
++    }
++
++    @AfterClass
++    public static void afterClass() throws Exception {
++        System.clearProperty(ConfigurationFactory.CONFIGURATION_FILE_PROPERTY);
++        loggerContext.reconfigure();
++    }
++
++    @Before
++    public void before() throws Exception {
++        GelfTestSender.getMessages().clear();
++        ThreadContext.clear();
++    }
++
++    @Test
++    public void testSimpleDebug() throws Exception {
++
++        Logger logger = loggerContext.getLogger(getClass().getName());
++        assertEquals(0, GelfTestSender.getMessages().size());
++        logger.debug("Blubb Test");
++        assertEquals(0, GelfTestSender.getMessages().size());
++
++    }
++
++    @Test
++    public void testSimpleInfo() throws Exception {
++
++        Logger logger = loggerContext.getLogger(getClass().getName());
++
++        logger.info("Blubb Test");
++        assertEquals(1, GelfTestSender.getMessages().size());
++
++        GelfMessage gelfMessage = GelfTestSender.getMessages().get(0);
++        assertEquals("Blubb Test", gelfMessage.getFullMessage());
++        assertEquals("6", gelfMessage.getLevel());
++        assertEquals("Blubb Test", gelfMessage.getShortMessage());
++        assertEquals(8192, gelfMessage.getMaximumMessageSize());
++
++        assertEquals(RuntimeContainer.FQDN_HOSTNAME, gelfMessage.getField("server"));
++        assertEquals(RuntimeContainer.HOSTNAME, gelfMessage.getField("server.simple"));
++        assertEquals(RuntimeContainer.FQDN_HOSTNAME, gelfMessage.getField("server.fqdn"));
++        assertEquals(RuntimeContainer.ADDRESS, gelfMessage.getField("server.addr"));
++
++        assertEquals(GelfLogAppenderTest.class.getSimpleName(), gelfMessage.getField("simpleClassName"));
++
++    }
++
++    @Test
++    public void testMDC() throws Exception {
++
++        Logger logger = loggerContext.getLogger(getClass().getName());
++
++        ThreadContext.put("mdcField1", "my mdc value");
++        ThreadContext.put(GelfUtil.MDC_REQUEST_START_MS, "" + System.currentTimeMillis());
++
++        logger.info("Blubb Test");
++        assertEquals(1, GelfTestSender.getMessages().size());
++
++        GelfMessage gelfMessage = GelfTestSender.getMessages().get(0);
++
++        assertEquals("my mdc value", gelfMessage.getField("mdcField1"));
++
++        assertNotNull(gelfMessage.getField(GelfUtil.MDC_REQUEST_DURATION));
++        assertNotNull(gelfMessage.getField(GelfUtil.MDC_REQUEST_END));
++
++    }
++}
+diff --git a/src/test/resources/log4j2-minimal.xml b/src/test/resources/log4j2-minimal.xml
+new file mode 100644
+index 0000000..38995ed
+--- /dev/null
++++ b/src/test/resources/log4j2-minimal.xml
+@@ -0,0 +1,19 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<Configuration>
++	<Appenders>
++		<Gelf name="gelf" graylogHost="udp:localhost" graylogPort="12201" extractStackTrace="true"
++			  filterStackTrace="true" mdcProfiling="true" maximumMessageSize="8192"
++			  testSenderClass="biz.paluch.logging.gelf.GelfTestSender">
++		</Gelf>
++
++		<Console name="CONSOLE" target="SYSTEM_OUT">
++			<PatternLayout pattern="%d %-5p [%t] %C{2} (%F:%L) - %m%n" />
++		</Console>
++	</Appenders>
++	<Loggers>
++		<Root level="INFO">
++			<AppenderRef ref="CONSOLE" />
++			<AppenderRef ref="gelf" />
++		</Root>
++	</Loggers>
++</Configuration>
+\ No newline at end of file
+diff --git a/src/test/resources/log4j2.xml b/src/test/resources/log4j2.xml
+new file mode 100644
+index 0000000..f1802e7
+--- /dev/null
++++ b/src/test/resources/log4j2.xml
+@@ -0,0 +1,31 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<Configuration>
++	<Appenders>
++		<Gelf name="gelf" graylogHost="udp:localhost" graylogPort="12201" extractStackTrace="true"
++			  filterStackTrace="true" mdcProfiling="true" maximumMessageSize="8192"
++			  testSenderClass="biz.paluch.logging.gelf.GelfTestSender">
++			<Field name="timestamp" pattern="%d{dd MMM yyyy HH:mm:ss,SSS}" />
++			<Field name="level" pattern="%level" />
++			<Field name="simpleClassName" pattern="%C{1}" />
++			<Field name="className" pattern="%C" />
++			<Field name="server" pattern="%host" />
++			<Field name="server.simple" pattern="%host{simple}" />
++			<Field name="server.fqdn" pattern="%host{fqdn}" />
++			<Field name="server.addr" pattern="%host{address}" />
++			<Field name="fieldName1" literal="fieldValue1" />
++			<Field name="fieldName2" literal="fieldValue2" />
++			<Field name="mdcField1" mdc="mdcField1" />
++			<Field name="mdcField2" mdc="mdcField2" />
++		</Gelf>
++
++		<Console name="CONSOLE" target="SYSTEM_OUT">
++			<PatternLayout pattern="%d %-5p [%t] %C{2} (%F:%L) - %m%n" />
++		</Console>
++	</Appenders>
++	<Loggers>
++		<Root level="INFO">
++			<AppenderRef ref="CONSOLE" />
++			<AppenderRef ref="gelf" />
++		</Root>
++	</Loggers>
++</Configuration>
+\ No newline at end of file

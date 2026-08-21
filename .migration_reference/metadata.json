@@ -1,0 +1,86 @@
+{
+  "library": {
+    "id": "log4j",
+    "old_version": "1.x.x",
+    "new_version": "2.x.x",
+    "language": "Java"
+  },
+  "repository": "mp911de/logstash-gelf",
+  "clone_url": "https://github.com/mp911de/logstash-gelf.git",
+  "checked_out_commit": "7186df83a47b683acc058cba48bafd784fd52255",
+  "migration_commit": "557ece6855891681514448310a4bf8df02ec6803",
+  "migration_commit_url": "https://github.com/mp911de/logstash-gelf/commit/557ece6855891681514448310a4bf8df02ec6803",
+  "migration_commit_message": "#2 Added support for log4j v2.0",
+  "manifest_path": "pom.xml",
+  "transition": {
+    "is_migration": true,
+    "reason": "new_added_while_old_present",
+    "before": {
+      "kind": "maven",
+      "exists": true,
+      "old": [
+        "log4j:log4j:${log4j.version}"
+      ],
+      "new": [],
+      "bridge": [],
+      "parse_error": "xml_parse_error: unbound prefix: line 2, column 0"
+    },
+    "after": {
+      "kind": "maven",
+      "exists": true,
+      "old": [
+        "log4j:log4j:${log4j.version}"
+      ],
+      "new": [
+        "org.apache.logging.log4j:log4j-api:2.0-beta9",
+        "org.apache.logging.log4j:log4j-core:2.0-beta9"
+      ],
+      "bridge": [],
+      "parse_error": "xml_parse_error: unbound prefix: line 2, column 0"
+    },
+    "removed_old": [],
+    "added_new": [
+      "org.apache.logging.log4j:log4j-api:2.0-beta9",
+      "org.apache.logging.log4j:log4j-core:2.0-beta9"
+    ],
+    "old_remains_after": true,
+    "bridge_only": false
+  },
+  "build": {
+    "tool": "maven",
+    "has_wrapper": false,
+    "java_target": "1.6",
+    "test_frameworks": [
+      "junit4"
+    ],
+    "test_file_count": 7
+  },
+  "expected_source_changes": [
+    "src/main/java/biz/paluch/logging/gelf/GelfMessageEnricher.java",
+    "src/main/java/biz/paluch/logging/gelf/GelfUtil.java",
+    "src/main/java/biz/paluch/logging/gelf/LogEvent.java",
+    "src/main/java/biz/paluch/logging/gelf/MdcGelfMessageAssembler.java",
+    "src/main/java/biz/paluch/logging/gelf/log4j/GelfLogAppender.java",
+    "src/main/java/biz/paluch/logging/gelf/log4j/Log4jLogEvent.java",
+    "src/main/java/biz/paluch/logging/gelf/log4j/Log4jVersionChecker.java",
+    "src/main/java/biz/paluch/logging/gelf/log4j/MdcGelfMessageAssembler.java",
+    "src/main/java/biz/paluch/logging/gelf/log4j2/GelfLogAppender.java",
+    "src/main/java/biz/paluch/logging/gelf/log4j2/GelfLogField.java",
+    "src/main/java/biz/paluch/logging/gelf/log4j2/HostnameConverter.java",
+    "src/main/java/biz/paluch/logging/gelf/log4j2/Log4j2LogEvent.java",
+    "src/main/java/biz/paluch/logging/gelf/log4j2/PatternLogMessageField.java",
+    "src/main/java/biz/paluch/logging/gelf/log4j2/package-info.java",
+    "src/test/java/biz/paluch/logging/gelf/GelfTestSender.java",
+    "src/test/java/biz/paluch/logging/gelf/log4j/GelfTestSender.java",
+    "src/test/java/biz/paluch/logging/gelf/log4j2/GelfLogAppenderMinimalTest.java",
+    "src/test/java/biz/paluch/logging/gelf/log4j2/GelfLogAppenderTest.java"
+  ],
+  "files_importing_old_library": 11,
+  "conditions": {
+    "1_uses_old_version": true,
+    "2_has_local_tests": true,
+    "3_imports_library": true,
+    "4_manifest_and_source_changed": true
+  },
+  "notes": []
+}
