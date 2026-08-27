@@ -4,6 +4,7 @@ Provides logging to logstash using the Graylog Extended Logging Format (GELF). T
 
 * [Java Util Logging](#jul)
 * [log4j 1.2.x](#log4j)
+* [log4j 2.x](#log4j2)
 * [JBoss 7 (mix of Java Util Logging with log4j MDC)](#jbossas7)
 * [Logback](#logback)
 
@@ -116,6 +117,45 @@ XML:
         <param name="AdditionalFields" value="fieldName1=fieldValue1,fieldName2=fieldValue2" />
         <param name="MdcFields" value="mdcField1,mdcField2" />
     </appender>
+
+<a name="log4j2"/>
+log4j 2.x configuration
+--------------
+XML (log4j2.xml):
+
+    <Configuration status="WARN">
+        <Appenders>
+            <GelfLogAppender name="gelf" host="udp:localhost" port="12201" facility="java-test"
+                    extractStackTrace="true" filterStackTrace="true" mdcProfiling="true"
+                    timestampPattern="yyyy-MM-dd HH:mm:ss,SSSS" maximumMessageSize="8192"
+                    additionalFields="fieldName1=fieldValue1,fieldName2=fieldValue2"
+                    mdcFields="mdcField1,mdcField2">
+                <ThresholdFilter level="INFO" />
+            </GelfLogAppender>
+        </Appenders>
+        <Loggers>
+            <Root level="DEBUG">
+                <AppenderRef ref="gelf" />
+            </Root>
+        </Loggers>
+    </Configuration>
+
+Properties (log4j2.properties):
+
+    appender.gelf.type = GelfLogAppender
+    appender.gelf.name = gelf
+    appender.gelf.host = udp:localhost
+    appender.gelf.port = 12201
+    appender.gelf.facility = java-test
+    appender.gelf.extractStackTrace = true
+    appender.gelf.filterStackTrace = true
+    appender.gelf.mdcProfiling = true
+    appender.gelf.timestampPattern = yyyy-MM-dd HH:mm:ss,SSSS
+    appender.gelf.maximumMessageSize = 8192
+    appender.gelf.additionalFields = fieldName1=fieldValue1,fieldName2=fieldValue2
+    appender.gelf.mdcFields = mdcField1,mdcField2
+    appender.gelf.filter.threshold.type = ThresholdFilter
+    appender.gelf.filter.threshold.level = INFO
 
 <a name="jbossas7"/>
 JBoss 7 configuration
