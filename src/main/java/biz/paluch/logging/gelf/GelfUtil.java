@@ -2,7 +2,7 @@ package biz.paluch.logging.gelf;
 
 import java.util.Date;
 
-import org.apache.log4j.MDC;
+import org.apache.logging.log4j.ThreadContext;
 
 import biz.paluch.logging.gelf.intern.GelfMessage;
 
@@ -31,7 +31,7 @@ public class GelfUtil {
 	}
 
 	public static void addMdcProfiling(GelfMessage gelfMessage) {
-		Object requestStartMs = MDC.get(MDC_REQUEST_START_MS);
+		Object requestStartMs = ThreadContext.get(MDC_REQUEST_START_MS);
 		long timestamp = -1;
 
 		if (requestStartMs instanceof Long) {

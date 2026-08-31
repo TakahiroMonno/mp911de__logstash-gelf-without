@@ -5,8 +5,17 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 
 import biz.paluch.logging.gelf.LogMessageField;
-import org.apache.log4j.AppenderSkeleton;
-import org.apache.log4j.spi.LoggingEvent;
+import org.apache.logging.log4j.core.Appender;
+import org.apache.logging.log4j.core.Core;
+import org.apache.logging.log4j.core.Filter;
+import org.apache.logging.log4j.core.LogEvent;
+import org.apache.logging.log4j.core.appender.AbstractAppender;
+import org.apache.logging.log4j.core.config.Property;
+import org.apache.logging.log4j.core.config.plugins.Plugin;
+import org.apache.logging.log4j.core.config.plugins.PluginAttribute;
+import org.apache.logging.log4j.core.config.plugins.PluginElement;
+import org.apache.logging.log4j.core.config.plugins.PluginFactory;
+import org.apache.logging.log4j.core.layout.PatternLayout;
 
 import biz.paluch.logging.gelf.MdcMessageField;
 import biz.paluch.logging.gelf.StaticMessageField;
@@ -57,34 +66,36 @@ import biz.paluch.logging.gelf.intern.GelfSenderFactory;
  * <p/>
  * </p>
  */
-public class GelfLogAppender extends AppenderSkeleton {
+@Plugin(name = "GelfLogAppender", category = Core.CATEGORY_NAME, elementType = Appender.ELEMENT_TYPE, printObject = true)
+public class GelfLogAppender extends AbstractAppender {
 
 	protected GelfSender gelfSender;
 	protected MdcGelfMessageAssembler gelfMessageAssembler;
 
-	public GelfLogAppender() {
-		gelfMessageAssembler = new MdcGelfMessageAssembler();
-        gelfMessageAssembler.addFields(LogMessageField.getDefaultMapping());
+	public GelfLogAppender(String name, Filter filter) {
+		super(name, filter, PatternLayout.createDefaultLayout(), true);
+		this.gelfMessageAssembler = new MdcGelfMessageAssembler();
+		this.gelfMessageAssembler.addFields(LogMessageField.getDefaultMapping());
 	}
 
 	@Override
-	protected void append(LoggingEvent event) {
+	public void append(LogEvent event) {
 		if (event == null) {
 			return;
 		}
 
 		if (null == gelfSender) {
 			if (gelfMessageAssembler.getHost() == null) {
-				reportError("Graylog2 hostname is empty!", null);
+				LOGGER.error("Graylog2 hostname is empty!");
 			} else {
 				try {
 					this.gelfSender = GelfSenderFactory.createSender(gelfMessageAssembler.getHost(), gelfMessageAssembler.getPort());
 				} catch (UnknownHostException e) {
-					reportError("Unknown Graylog2 hostname:" + gelfMessageAssembler.getHost(), e);
+					LOGGER.error("Unknown Graylog2 hostname:" + gelfMessageAssembler.getHost(), e);
 				} catch (SocketException e) {
-					reportError("Socket exception", e);
+					LOGGER.error("Socket exception", e);
 				} catch (IOException e) {
-					reportError("IO exception", e);
+					LOGGER.error("IO exception", e);
 				}
 			}
 		}
@@ -92,36 +103,87 @@ public class GelfLogAppender extends AppenderSkeleton {
 		try {
 			GelfMessage message = createGelfMessage(event);
 			if (!message.isValid()) {
-				reportError("GELF Message is invalid: " + message.toJson(), null);
+				LOGGER.error("GELF Message is invalid: " + message.toJson());
 			}
 
 			if (null == gelfSender || !gelfSender.sendMessage(message)) {
-				reportError("Could not send GELF message", null);
+				LOGGER.error("Could not send GELF message");
 			}
 		} catch (Exception e) {
-			reportError("Could not send GELF message", e);
+			LOGGER.error("Could not send GELF message", e);
 		}
 	}
 
-	private void reportError(String message, Exception exception) {
-		errorHandler.error(message, exception, 0);
-	}
-
 	@Override
-	public boolean requiresLayout() {
-		return false;
-	}
-
-	@Override
-	public void close() {
+	public void stop() {
+		super.stop();
 		if (null != gelfSender) {
 			gelfSender.close();
 			gelfSender = null;
 		}
 	}
 
-	protected GelfMessage createGelfMessage(final LoggingEvent loggingEvent) {
+	protected GelfMessage createGelfMessage(final LogEvent loggingEvent) {
 		return gelfMessageAssembler.createGelfMessage(new Log4jLogEvent(loggingEvent));
+	}
+
+	@PluginFactory
+	public static GelfLogAppender createAppender(
+			@PluginAttribute("name") String name,
+			@PluginElement("Filter") Filter filter,
+			@PluginAttribute("GraylogHost") String graylogHost,
+			@PluginAttribute("GraylogPort") int graylogPort,
+			@PluginAttribute("Host") String host,
+			@PluginAttribute("Port") int port,
+			@PluginAttribute("Facility") String facility,
+			@PluginAttribute("OriginHost") String originHost,
+			@PluginAttribute("ExtractStackTrace") boolean extractStackTrace,
+			@PluginAttribute("FilterStackTrace") boolean filterStackTrace,
+			@PluginAttribute("MdcProfiling") boolean mdcProfiling,
+			@PluginAttribute("TimestampPattern") String timestampPattern,
+			@PluginAttribute("MaximumMessageSize") int maximumMessageSize,
+			@PluginAttribute("AdditionalFields") String additionalFields,
+			@PluginAttribute("MdcFields") String mdcFields,
+			@PluginAttribute("TestSenderClass") String testSenderClass) {
+
+		GelfLogAppender appender = new GelfLogAppender(name, filter);
+
+		// Use GraylogHost/GraylogPort if specified, otherwise use Host/Port
+		String hostToUse = graylogHost != null ? graylogHost : host;
+		int portToUse = graylogPort > 0 ? graylogPort : (port > 0 ? port : 12201);
+
+		if (hostToUse != null) {
+			appender.setGraylogHost(hostToUse);
+		}
+		if (portToUse > 0) {
+			appender.setGraylogPort(portToUse);
+		}
+		if (facility != null) {
+			appender.setFacility(facility);
+		}
+		if (originHost != null) {
+			appender.setOriginHost(originHost);
+		}
+		appender.setExtractStackTrace(extractStackTrace);
+		appender.setFilterStackTrace(filterStackTrace);
+		appender.setMdcProfiling(mdcProfiling);
+		if (timestampPattern != null) {
+			appender.setTimestampPattern(timestampPattern);
+		}
+		if (maximumMessageSize > 0) {
+			appender.setMaximumMessageSize(maximumMessageSize);
+		}
+		if (additionalFields != null) {
+			appender.setAdditionalFields(additionalFields);
+		}
+		if (mdcFields != null) {
+			appender.setMdcFields(mdcFields);
+		}
+		if (testSenderClass != null) {
+			appender.setTestSenderClass(testSenderClass);
+		}
+
+		return appender;
 	}
 
 	public void setAdditionalFields(String fieldSpec) {

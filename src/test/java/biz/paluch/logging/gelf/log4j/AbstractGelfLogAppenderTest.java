@@ -2,8 +2,9 @@ package biz.paluch.logging.gelf.log4j;
 
 import biz.paluch.logging.gelf.GelfUtil;
 import biz.paluch.logging.gelf.intern.GelfMessage;
-import org.apache.log4j.Logger;
-import org.apache.log4j.MDC;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.ThreadContext;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.containsString;
@@ -21,7 +22,7 @@ public abstract class AbstractGelfLogAppenderTest {
     @Test
     public void testSimpleDebug() throws Exception {
 
-        Logger logger = Logger.getLogger(getClass());
+        Logger logger = LogManager.getLogger(getClass());
 
         assertEquals(0, GelfTestSender.getMessages().size());
         logger.debug("Blubb Test");
@@ -32,7 +33,7 @@ public abstract class AbstractGelfLogAppenderTest {
     @Test
     public void testSimpleInfo() throws Exception {
 
-        Logger logger = Logger.getLogger(getClass());
+        Logger logger = LogManager.getLogger(getClass());
 
         logger.info("Blubb Test");
         assertEquals(1, GelfTestSender.getMessages().size());
@@ -49,7 +50,7 @@ public abstract class AbstractGelfLogAppenderTest {
     @Test
     public void testException() throws Exception {
 
-        Logger logger = Logger.getLogger(getClass());
+        Logger logger = LogManager.getLogger(getClass());
 
         logger.info("Blubb Test", new Exception("this is an exception"));
         assertEquals(1, GelfTestSender.getMessages().size());
@@ -70,9 +71,9 @@ public abstract class AbstractGelfLogAppenderTest {
     @Test
     public void testFields() throws Exception {
 
-        Logger logger = Logger.getLogger(getClass());
-        MDC.put("mdcField1", "a value");
-        MDC.remove(GelfUtil.MDC_REQUEST_START_MS);
+        Logger logger = LogManager.getLogger(getClass());
+        ThreadContext.put("mdcField1", "a value");
+        ThreadContext.remove(GelfUtil.MDC_REQUEST_START_MS);
 
         logger.info("Blubb Test");
         assertEquals(1, GelfTestSender.getMessages().size());
@@ -92,8 +93,8 @@ public abstract class AbstractGelfLogAppenderTest {
     @Test
     public void testProfiling() throws Exception {
 
-        Logger logger = Logger.getLogger(getClass());
-        MDC.put(GelfUtil.MDC_REQUEST_START_MS, "" + System.currentTimeMillis());
+        Logger logger = LogManager.getLogger(getClass());
+        ThreadContext.put(GelfUtil.MDC_REQUEST_START_MS, "" + System.currentTimeMillis());
 
         logger.info("Blubb Test");
         assertEquals(1, GelfTestSender.getMessages().size());

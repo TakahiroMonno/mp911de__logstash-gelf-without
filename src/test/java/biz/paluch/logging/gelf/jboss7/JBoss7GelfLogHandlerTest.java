@@ -2,7 +2,7 @@ package biz.paluch.logging.gelf.jboss7;
 
 import biz.paluch.logging.gelf.intern.GelfMessage;
 import biz.paluch.logging.gelf.log4j.GelfTestSender;
-import org.apache.log4j.MDC;
+import org.apache.logging.log4j.ThreadContext;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -25,7 +25,7 @@ public class JBoss7GelfLogHandlerTest {
 
         LogManager.getLogManager().reset();
 
-        MDC.remove("mdcField1");
+        ThreadContext.remove("mdcField1");
     }
 
     @Test
@@ -96,7 +96,7 @@ public class JBoss7GelfLogHandlerTest {
         Logger logger = Logger.getLogger(getClass().getName());
         logger.addHandler(handler);
 
-        MDC.put("mdcField1", "a value");
+        ThreadContext.put("mdcField1", "a value");
 
         logger.info("Blubb Test");
         assertEquals(1, GelfTestSender.getMessages().size());

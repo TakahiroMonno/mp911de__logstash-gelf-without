@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration packages="biz.paluch.logging.gelf.log4j">
+    <Appenders>
+        <Console name="sysout" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{ISO8601} %-5p [%t] %c: %m%n" />
+        </Console>
+
+        <GelfLogAppender name="gelf" GraylogHost="udp:localhost" GraylogPort="12201" Facility="java-test" ExtractStackTrace="true" FilterStackTrace="true" MdcProfiling="true" TimestampPattern="yyyy-MM-dd HH:mm:ss,SSSS" MaximumMessageSize="8192" AdditionalFields="fieldName1=fieldValue1,fieldName2=fieldValue2" MdcFields="mdcField1,mdcField2" TestSenderClass="biz.paluch.logging.gelf.log4j.GelfTestSender">
+            <Filters>
+                <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY" />
+            </Filters>
+        </GelfLogAppender>
+    </Appenders>
+
+    <Loggers>
+        <Root level="DEBUG">
+            <AppenderRef ref="sysout" />
+            <AppenderRef ref="gelf" />
+        </Root>
+    </Loggers>
+</Configuration>

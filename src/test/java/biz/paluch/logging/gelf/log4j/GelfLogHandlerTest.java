@@ -1,7 +1,6 @@
 package biz.paluch.logging.gelf.log4j;
 
 import biz.paluch.logging.gelf.intern.GelfMessage;
-import org.apache.log4j.MDC;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -20,7 +19,6 @@ public class GelfLogHandlerTest {
 
         GelfTestSender.getMessages().clear();
         LogManager.getLogManager().readConfiguration(getClass().getResourceAsStream("/test-logging.properties"));
-        MDC.remove("mdcField1");
     }
 
     @Test

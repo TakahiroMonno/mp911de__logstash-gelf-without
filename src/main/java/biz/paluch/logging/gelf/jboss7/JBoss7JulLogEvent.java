@@ -2,7 +2,7 @@ package biz.paluch.logging.gelf.jboss7;
 
 import java.util.logging.LogRecord;
 
-import org.apache.log4j.MDC;
+import org.apache.logging.log4j.ThreadContext;
 
 import biz.paluch.logging.gelf.MdcMessageField;
 import biz.paluch.logging.gelf.MessageField;
@@ -31,7 +31,7 @@ public class JBoss7JulLogEvent extends JulLogEvent {
 
 	private String getValue(MdcMessageField field) {
 
-		Object value = MDC.get(field.getMdcName());
+		Object value = ThreadContext.get(field.getMdcName());
 		if (value != null) {
 			return value.toString();
 		}

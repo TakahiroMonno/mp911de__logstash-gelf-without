@@ -1,10 +1,7 @@
 package biz.paluch.logging.gelf.log4j;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.MDC;
-import org.apache.log4j.spi.LocationInfo;
-import org.apache.log4j.spi.LoggingEvent;
-import org.apache.log4j.spi.ThrowableInformation;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.ThreadContext;
 
 import biz.paluch.logging.gelf.GelfUtil;
 import biz.paluch.logging.gelf.LogEvent;
@@ -18,38 +15,28 @@ import biz.paluch.logging.gelf.MessageField;
  */
 public class Log4jLogEvent implements LogEvent {
 
-	private LoggingEvent loggingEvent;
+	private org.apache.logging.log4j.core.LogEvent loggingEvent;
 
-	public Log4jLogEvent(LoggingEvent loggingEvent) {
+	public Log4jLogEvent(org.apache.logging.log4j.core.LogEvent loggingEvent) {
 		this.loggingEvent = loggingEvent;
 	}
 
-	@Override
 	public String getMessage() {
-		return loggingEvent.getRenderedMessage();
+		return loggingEvent.getMessage().getFormattedMessage();
 	}
 
-	@Override
 	public Object[] getParameters() {
 		return new Object[0];
 	}
 
-	@Override
 	public Throwable getThrowable() {
-		ThrowableInformation ti = loggingEvent.getThrowableInformation();
-		if (ti != null) {
-			return ti.getThrowable();
-		}
-
-		return null;
+		return loggingEvent.getThrown();
 	}
 
-	@Override
 	public long getLogTimestamp() {
-		return Log4jVersionChecker.getTimeStamp(loggingEvent);
+		return loggingEvent.getTimeMillis();
 	}
 
-	@Override
 	public String getSyslogLevel() {
 		return "" + levelToSyslogLevel(loggingEvent.getLevel());
 	}
@@ -57,22 +44,20 @@ public class Log4jLogEvent implements LogEvent {
 	private int levelToSyslogLevel(final Level level) {
 		final int syslogLevel;
 
-		switch (level.toInt()) {
-		case Level.FATAL_INT:
+		switch (level.getStandardLevel()) {
+		case FATAL:
 			return 2;
-		case Level.ERROR_INT:
+		case ERROR:
 			return 3;
-		case Level.WARN_INT:
+		case WARN:
 			return 4;
-		case Level.INFO_INT:
+		case INFO:
 			return 6;
 		default:
 			return 7;
-
 		}
 	}
 
-	@Override
 	public String getValue(MessageField field) {
 		if (field instanceof LogMessageField) {
 			return getValue((LogMessageField) field);
@@ -93,11 +78,23 @@ public class Log4jLogEvent implements LogEvent {
 		case ThreadName:
 			return loggingEvent.getThreadName();
 		case SourceClassName:
-			return loggingEvent.getLocationInformation().getClassName();
+			StackTraceElement source = loggingEvent.getSource();
+			if (source != null) {
+				return source.getClassName();
+			}
+			return null;
 		case SourceMethodName:
-			return loggingEvent.getLocationInformation().getMethodName();
+			source = loggingEvent.getSource();
+			if (source != null) {
+				return source.getMethodName();
+			}
+			return null;
 		case SourceSimpleClassName:
-			return GelfUtil.getSimpleClassName(loggingEvent.getLocationInformation().getClassName());
+			source = loggingEvent.getSource();
+			if (source != null) {
+				return GelfUtil.getSimpleClassName(source.getClassName());
+			}
+			return null;
 		}
 
 		throw new UnsupportedOperationException("Cannot provide value for " + field);
@@ -105,7 +102,7 @@ public class Log4jLogEvent implements LogEvent {
 
 	private String getValue(MdcMessageField field) {
 
-		Object value = MDC.get(field.getMdcName());
+		Object value = ThreadContext.get(field.getMdcName());
 		if (value != null) {
 			return value.toString();
 		}
